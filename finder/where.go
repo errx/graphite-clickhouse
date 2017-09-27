@@ -10,6 +10,7 @@ import (
 func GlobToRegexp(g string) string {
 	s := g
 	s = strings.Replace(s, "*", "([^.]*?)", -1)
+	s = strings.Replace(s, "~", "(.*?)", -1)
 	s = strings.Replace(s, "{", "(", -1)
 	s = strings.Replace(s, "}", ")", -1)
 	s = strings.Replace(s, ",", "|", -1)
@@ -18,6 +19,10 @@ func GlobToRegexp(g string) string {
 
 func HasWildcard(target string) bool {
 	return strings.IndexAny(target, "[]{}*") > -1
+}
+
+func HasExpand(target string) bool {
+	return strings.IndexRune(target, '~') > -1
 }
 
 // Q quotes string for clickhouse

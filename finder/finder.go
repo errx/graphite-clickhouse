@@ -14,10 +14,10 @@ type Finder interface {
 }
 
 func New(ctx context.Context, config *config.Config) Finder {
-	f := NewBase(ctx, config.ClickHouse.Url, config.ClickHouse.TreeTable, config.ClickHouse.TreeTimeout.Value())
+	f := NewBase(ctx, config.ClickHouse.Url, config.ClickHouse.TreeTable, config.ClickHouse.TreeTimeout.Value(), config.ClickHouse.MetricLimitWithExpand)
 
 	if config.ClickHouse.ReverseTreeTable != "" {
-		f = WrapReverse(f, ctx, config.ClickHouse.Url, config.ClickHouse.ReverseTreeTable, config.ClickHouse.TreeTimeout.Value())
+		f = WrapReverse(f, ctx, config.ClickHouse.Url, config.ClickHouse.ReverseTreeTable, config.ClickHouse.TreeTimeout.Value(), config.ClickHouse.MetricLimitWithExpand)
 	}
 
 	if config.ClickHouse.TagTable != "" {
