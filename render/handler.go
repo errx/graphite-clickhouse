@@ -192,25 +192,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	where := finder.NewWhere()
 	where.Andf("Time >= %d AND Time <= %d", fromTimestamp, until)
 	if reverseQuery {
-		deletedFnd := finder.NewDeleted(r.Context(), h.config)
-		deletedFnd.Execute(target)
-		deletedMetricList := deletedFnd.Series()
-		if len(deletedMetricList) > 0 {
-			listBuf.Reset()
-			for index, m := range deletedMetricList {
-				if len(m) == 0 {
-					continue
-				}
-				if index > 0 {
-					listBuf.WriteByte(',')
-				}
-
-				listBuf.WriteString("'" + clickhouse.Escape(unsafeString(m)) + "'")
-			}
-			if listBuf.Len() > 0 {
-				where.Andf("Path NOT IN (%s)", listBuf.String())
-			}
-		}
 		where.And(finder.GraphiteQueryToWhere(target, false))
 	} else {
 		where.Andf("Path IN (%s)", listBuf.String())
