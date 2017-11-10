@@ -132,7 +132,7 @@ func New() *Config {
 			MetricLimitWithExpand: 10000,
 		},
 		ReverseQuery: ReverseQuery{
-			MinMetricCount: 30000,
+			MinMetricCount: 10000,
 			MaxTimeRange: 12*3600,
 		},
 		Tags: Tags{
