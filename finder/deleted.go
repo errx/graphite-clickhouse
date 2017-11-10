@@ -12,7 +12,13 @@ type DeletedFinder struct {
 }
 
 func NewDeleted(ctx context.Context, config *config.Config) Finder {
-	b := NewBase(ctx, config.ClickHouse.Url, config.ClickHouse.TreeTable, config.ClickHouse.TreeTimeout.Value())
+	b := &BaseFinder{
+		ctx:     ctx,
+		url:     config.ClickHouse.Url,
+		table:   config.ClickHouse.TreeTable,
+		expandLimit: config.ClickHouse.MetricLimitWithExpand,
+		timeout: config.ClickHouse.TreeTimeout.Value(),
+	}
 	return &DeletedFinder{b}
 }
 
