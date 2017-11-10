@@ -133,18 +133,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	metricList := fnd.Series()
 
-	_, typeOk := fnd.(*finder.BaseFinder)
 	timeRange := int(untilTimestamp - fromTimestamp)
 	timeRangeOk := timeRange < h.config.ReverseQuery.MaxTimeRange
 	metricLenOk := len(metricList) > h.config.ReverseQuery.MinMetricCount
-	reverseQuery := metricLenOk && typeOk && timeRangeOk
+	reverseQuery := metricLenOk && timeRangeOk
 
 	logger.Info("query_type",
 		zap.Bool("is_reverse", reverseQuery),
 		zap.Int("time_range", timeRange),
 		zap.Bool("time_range_ok", timeRangeOk),
 		zap.Int("metric_cnt", len(metricList)),
-		zap.Bool("type_ok", typeOk),
 	)
 
 	if metricLenOk && !timeRangeOk {
