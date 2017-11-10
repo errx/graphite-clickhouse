@@ -39,10 +39,10 @@ func ReverseBytes(target []byte) []byte {
 	return bytes.Join(a, []byte{'.'})
 }
 
-func WrapReverse(f Finder, ctx context.Context, url string, table string, timeout time.Duration) *ReverseFinder {
+func WrapReverse(f Finder, ctx context.Context, url string, table string, timeout time.Duration, expandLimit int) *ReverseFinder {
 	return &ReverseFinder{
 		wrapped:    f,
-		baseFinder: NewBase(ctx, url, table, timeout),
+		baseFinder: NewBase(ctx, url, table, timeout, expandLimit),
 		ctx:        ctx,
 		url:        url,
 		table:      table,

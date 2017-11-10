@@ -37,6 +37,7 @@ func TestFind(t *testing.T) {
 
 		cfg := config.New()
 		cfg.ClickHouse.Url = srv.URL
+		cfg.ClickHouse.MetricLimitWithExpand = 100
 
 		handler := NewHandler(cfg)
 		w := httptest.NewRecorder()
