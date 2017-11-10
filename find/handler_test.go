@@ -62,4 +62,8 @@ func TestFind(t *testing.T) {
 		"host.top.cpu.cpu%2A",
 		"SELECT Path FROM graphite_tree WHERE (Level = 4) AND (Path LIKE 'host.top.cpu.cpu%') GROUP BY Path HAVING argMax(Deleted, Version)==0",
 	)
+	testCase(
+		"host.~.cpu",
+		"SELECT Path FROM graphite_tree WHERE (Path LIKE 'host.%') AND (match(Path, '^host[.](.*?)[.]cpu[.]?$')) GROUP BY Path HAVING argMax(Deleted, Version)==0 LIMIT 100",
+	)
 }

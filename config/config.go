@@ -60,6 +60,11 @@ type ClickHouse struct {
 	ExtraPrefix      string    `toml:"extra-prefix"`
 }
 
+type ReverseQuery struct {
+	MaxTimeRange   int `toml:"max-time-range"`
+	MinMetricCount int `toml:"min-metric-count"`
+}
+
 type Tags struct {
 	Rules      string `toml:"rules"`
 	Date       string `toml:"date"`
@@ -88,13 +93,14 @@ type DataTable struct {
 
 // Config ...
 type Config struct {
-	Common     Common             `toml:"common"`
-	ClickHouse ClickHouse         `toml:"clickhouse"`
-	DataTable  []DataTable        `toml:"data-table"`
-	Tags       Tags               `toml:"tags"`
-	Carbonlink Carbonlink         `toml:"carbonlink"`
-	Logging    []zapwriter.Config `toml:"logging"`
-	Rollup     *rollup.Rollup     `toml:"-"`
+	Common       Common             `toml:"common"`
+	ClickHouse   ClickHouse         `toml:"clickhouse"`
+	DataTable    []DataTable        `toml:"data-table"`
+	Tags         Tags               `toml:"tags"`
+	Carbonlink   Carbonlink         `toml:"carbonlink"`
+	Logging      []zapwriter.Config `toml:"logging"`
+	Rollup       *rollup.Rollup     `toml:"-"`
+	ReverseQuery ReverseQuery       `toml:"reverse-query"`
 }
 
 // NewConfig ...
@@ -122,6 +128,10 @@ func New() *Config {
 			},
 			RollupConf: "/etc/graphite-clickhouse/rollup.xml",
 			TagTable:   "",
+		},
+		ReverseQuery: ReverseQuery{
+			MinMetricCount: 30000,
+			MaxTimeRange: 12*3600,
 		},
 		Tags: Tags{
 			Date:  "2016-11-01",

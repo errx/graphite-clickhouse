@@ -123,15 +123,27 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Search in small index table first
-	finder := finder.New(r.Context(), h.config)
+	fnd := finder.New(r.Context(), h.config)
 
-	err = finder.Execute(target)
+	err = fnd.Execute(target)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	metricList := finder.Series()
+	metricList := fnd.Series()
+
+	_, typeOk := fnd.(*finder.BaseFinder)
+	timeRangeOk := int(untilTimestamp - fromTimestamp) < h.config.ReverseQuery.MaxTimeRange
+	metricLenOk := len(metricList) > h.config.ReverseQuery.MinMetricCount
+	reverseQuery := metricLenOk && typeOk && timeRangeOk
+
+	logger.Debug("query_type", zap.Bool("is_reverse", reverseQuery))
+
+	if metricLenOk && !timeRangeOk {
+		http.Error(w, "query is too large", http.StatusInternalServerError)
+		return
+	}
 
 	maxStep := int32(0)
 
@@ -146,36 +158,58 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if step > maxStep {
 			maxStep = step
 		}
+		if reverseQuery {
+			continue
+		}
 
 		if index > 0 {
-			listBuf.Write([]byte{','})
+			listBuf.WriteByte(',')
 		}
 
 		listBuf.WriteString("'" + clickhouse.Escape(unsafeString(m)) + "'")
 	}
 
-	if listBuf.Len() == 0 {
+	if listBuf.Len() == 0 && !reverseQuery {
 		// Return empty response
-		h.Reply(w, r, &Data{Points: make([]point.Point, 0), Finder: finder}, 0, 0, "")
+		h.Reply(w, r, &Data{Points: make([]point.Point, 0), Finder: fnd}, 0, 0, "")
 		return
 	}
 
-	var pathWhere = fmt.Sprintf(
-		"Path IN (%s)",
-		string(listBuf.Bytes()),
-	)
-
 	until := untilTimestamp - untilTimestamp%int64(maxStep) + int64(maxStep) - 1
-	dateWhere := fmt.Sprintf(
-		"(Date >='%s' AND Date <= '%s')",
+
+	prewhere := finder.NewWhere()
+	prewhere.Andf(
+		"Date >='%s' AND Date <= '%s'",
 		time.Unix(fromTimestamp, 0).Format("2006-01-02"),
 		time.Unix(untilTimestamp, 0).Format("2006-01-02"),
 	)
-	timeWhere := fmt.Sprintf(
-		"(Time >= %d AND Time <= %d)",
-		fromTimestamp,
-		until,
-	)
+
+	where := finder.NewWhere()
+	where.Andf("Time >= %d AND Time <= %d", fromTimestamp, until)
+	if reverseQuery {
+		deletedFnd := finder.NewDeleted(r.Context(), h.config)
+		deletedFnd.Execute(target)
+		deletedMetricList := deletedFnd.Series()
+		if len(deletedMetricList) > 0 {
+			listBuf.Reset()
+			for index, m := range deletedMetricList {
+				if len(m) == 0 {
+					continue
+				}
+				if index > 0 {
+					listBuf.WriteByte(',')
+				}
+
+				listBuf.WriteString("'" + clickhouse.Escape(unsafeString(m)) + "'")
+			}
+			if listBuf.Len() > 0 {
+				where.Andf("Path NOT IN (%s)", listBuf.String())
+			}
+		}
+		where.And(finder.GraphiteQueryToWhere(target, false))
+	} else {
+		where.Andf("Path IN (%s)", listBuf.String())
+	}
 
 	query := fmt.Sprintf(
 		`
@@ -183,13 +217,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Path, Time, Value, Timestamp
 		FROM %s
 		PREWHERE (%s)
-		WHERE (%s) AND (%s)
+		WHERE (%s)
 		FORMAT RowBinary
 		`,
 		h.config.ClickHouse.DataTable,
-		dateWhere,
-		pathWhere,
-		timeWhere,
+		prewhere.String(),
+		where.String(),
 	)
 
 	// start carbonlink request
@@ -229,7 +262,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("sort", zap.String("runtime", d.String()), zap.Duration("runtime_ns", d))
 
 	data.Points = point.Uniq(data.Points)
-	data.Finder = finder
+	data.Finder = fnd
 
 	// pp.Println(points)
 	h.Reply(w, r, data, int32(fromTimestamp), int32(untilTimestamp), prefix)

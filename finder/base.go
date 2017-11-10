@@ -27,12 +27,14 @@ func NewBase(ctx context.Context, url string, table string, timeout time.Duratio
 	}
 }
 
-func (b *BaseFinder) where(query string) string {
-	level := strings.Count(query, ".") + 1
+func GraphiteQueryToWhere(query string, needLevel bool) string {
 
 	w := NewWhere()
 
-	w.Andf("Level = %d", level)
+	if needLevel {
+		level := strings.Count(query, ".") + 1
+		w.Andf("Level = %d", level)
+	}
 
 	if query == "*" {
 		return w.String()
@@ -60,6 +62,10 @@ func (b *BaseFinder) where(query string) string {
 	// work around with [.]
 	w.Andf("match(Path, %s)", Q(`^`+GlobToRegexp(query)+`[.]?$`))
 	return w.String()
+}
+
+func (b *BaseFinder) where(query string) string {
+	return GraphiteQueryToWhere(query, true)
 }
 
 func (b *BaseFinder) Execute(query string) (err error) {
