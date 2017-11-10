@@ -134,11 +134,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	metricList := fnd.Series()
 
 	_, typeOk := fnd.(*finder.BaseFinder)
-	timeRangeOk := int(untilTimestamp - fromTimestamp) < h.config.ReverseQuery.MaxTimeRange
+	timeRange := int(untilTimestamp - fromTimestamp)
+	timeRangeOk := timeRange < h.config.ReverseQuery.MaxTimeRange
 	metricLenOk := len(metricList) > h.config.ReverseQuery.MinMetricCount
 	reverseQuery := metricLenOk && typeOk && timeRangeOk
 
-	logger.Debug("query_type", zap.Bool("is_reverse", reverseQuery))
+	logger.Info("query_type",
+		zap.Bool("is_reverse", reverseQuery),
+		zap.Int("time_range", timeRange),
+		zap.Bool("time_range_ok", timeRangeOk),
+		zap.Int("metric_cnt", len(metricList)),
+		zap.Bool("type_ok", typeOk),
+	)
 
 	if metricLenOk && !timeRangeOk {
 		http.Error(w, "query is too large", http.StatusInternalServerError)
