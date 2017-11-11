@@ -21,11 +21,11 @@ type BaseFinder struct {
 
 func NewBase(ctx context.Context, url string, table string, timeout time.Duration, expandLimit int) Finder {
 	return &BaseFinder{
-		ctx:     ctx,
-		url:     url,
-		table:   table,
+		ctx:         ctx,
+		url:         url,
+		table:       table,
 		expandLimit: expandLimit,
-		timeout: timeout,
+		timeout:     timeout,
 	}
 }
 

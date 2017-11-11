@@ -122,8 +122,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	preWhere := finder.NewWhere()
+	preWhere.Andf(
+		"Date >='%s' AND Date <= '%s'",
+		time.Unix(fromTimestamp, 0).Format("2006-01-02"),
+		time.Unix(untilTimestamp, 0).Format("2006-01-02"),
+	)
+
 	// Search in small index table first
-	fnd := finder.New(r.Context(), h.config)
+	// TODO use default constructor
+	var fnd finder.Finder
+	if h.config.ClickHouse.DateTreeTable != "" {
+		fnd = finder.NewDateFinder(preWhere.String(), r.Context(), h.config)
+	} else {
+		fnd = finder.New(r.Context(), h.config)
+	}
 
 	err = fnd.Execute(target)
 	if err != nil {
@@ -159,13 +172,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Reply(w, r, &Data{Points: make([]point.Point, 0), Finder: fnd}, 0, 0, "")
 		return
 	}
-
-	preWhere := finder.NewWhere()
-	preWhere.Andf(
-		"Date >='%s' AND Date <= '%s'",
-		time.Unix(fromTimestamp, 0).Format("2006-01-02"),
-		time.Unix(untilTimestamp, 0).Format("2006-01-02"),
-	)
 
 	where := finder.NewWhere()
 	where.Andf("Path in (%s)", listBuf.String())

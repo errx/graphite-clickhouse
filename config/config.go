@@ -53,6 +53,7 @@ type ClickHouse struct {
 	DataTable             string    `toml:"data-table"`
 	DataTimeout           *Duration `toml:"data-timeout"`
 	TreeTable             string    `toml:"tree-table"`
+	DateTreeTable         string    `toml:"date-tree-table"`
 	ReverseTreeTable      string    `toml:"reverse-tree-table"`
 	TreeTimeout           *Duration `toml:"tree-timeout"`
 	TagTable              string    `toml:"tag-table"`
@@ -117,7 +118,8 @@ func New() *Config {
 			DataTimeout: &Duration{
 				Duration: time.Minute,
 			},
-			TreeTable: "graphite_tree",
+			TreeTable:     "graphite_tree",
+			DateTreeTable: "metrics_date", // TODO remove default
 			TreeTimeout: &Duration{
 				Duration: time.Minute,
 			},
