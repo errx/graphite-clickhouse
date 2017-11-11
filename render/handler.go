@@ -123,15 +123,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Search in small index table first
-	finder := finder.New(r.Context(), h.config)
+	fnd := finder.New(r.Context(), h.config)
 
-	err = finder.Execute(target)
+	err = fnd.Execute(target)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	metricList := finder.Series()
+	metricList := fnd.Series()
 
 	maxStep := int32(0)
 
@@ -156,7 +156,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if listBuf.Len() == 0 {
 		// Return empty response
-		h.Reply(w, r, &Data{Points: make([]point.Point, 0), Finder: finder}, 0, 0, "")
+		h.Reply(w, r, &Data{Points: make([]point.Point, 0), Finder: fnd}, 0, 0, "")
 		return
 	}
 
@@ -229,7 +229,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("sort", zap.String("runtime", d.String()), zap.Duration("runtime_ns", d))
 
 	data.Points = point.Uniq(data.Points)
-	data.Finder = finder
+	data.Finder = fnd
 
 	// pp.Println(points)
 	h.Reply(w, r, data, int32(fromTimestamp), int32(untilTimestamp), prefix)
