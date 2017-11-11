@@ -148,7 +148,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if index > 0 {
-			listBuf.Write([]byte{','})
+			listBuf.WriteByte(',')
 		}
 
 		listBuf.WriteString("'" + clickhouse.Escape(unsafeString(m)) + "'")
@@ -160,22 +160,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pathWhere = fmt.Sprintf(
-		"Path IN (%s)",
-		string(listBuf.Bytes()),
-	)
-
-	until := untilTimestamp - untilTimestamp%int64(maxStep) + int64(maxStep) - 1
-	dateWhere := fmt.Sprintf(
-		"(Date >='%s' AND Date <= '%s')",
+	preWhere := finder.NewWhere()
+	preWhere.Andf(
+		"Date >='%s' AND Date <= '%s'",
 		time.Unix(fromTimestamp, 0).Format("2006-01-02"),
 		time.Unix(untilTimestamp, 0).Format("2006-01-02"),
 	)
-	timeWhere := fmt.Sprintf(
-		"(Time >= %d AND Time <= %d)",
-		fromTimestamp,
-		until,
-	)
+
+	where := finder.NewWhere()
+	where.Andf("Path in (%s)", listBuf.String())
+
+	until := untilTimestamp - untilTimestamp%int64(maxStep) + int64(maxStep) - 1
+	where.Andf("Time >= %d AND Time <= %d", fromTimestamp, until)
 
 	query := fmt.Sprintf(
 		`
@@ -183,13 +179,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Path, Time, Value, Timestamp
 		FROM %s
 		PREWHERE (%s)
-		WHERE (%s) AND (%s)
+		WHERE (%s)
 		FORMAT RowBinary
 		`,
 		h.config.ClickHouse.DataTable,
-		dateWhere,
-		pathWhere,
-		timeWhere,
+		preWhere.String(),
+		where.String(),
 	)
 
 	// start carbonlink request
