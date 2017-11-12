@@ -119,7 +119,7 @@ func New() *Config {
 				Duration: time.Minute,
 			},
 			TreeTable:     "graphite_tree",
-			DateTreeTable: "metrics_date", // TODO remove default
+			DateTreeTable: "graphite.date_metrics", // TODO remove default
 			TreeTimeout: &Duration{
 				Duration: time.Minute,
 			},
