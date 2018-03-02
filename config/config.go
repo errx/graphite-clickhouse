@@ -49,18 +49,19 @@ type Common struct {
 }
 
 type ClickHouse struct {
-	Url                  string    `toml:"url"`
-	DataTable            string    `toml:"data-table"`
-	DataTimeout          *Duration `toml:"data-timeout"`
-	TreeTable            string    `toml:"tree-table"`
-	DateTreeTable        string    `toml:"date-tree-table"`
-	DateTreeTableVersion int       `toml:"date-tree-table-version"`
-	TaggedTable          string    `toml:"tagged-table"`
-	ReverseTreeTable     string    `toml:"reverse-tree-table"`
-	TreeTimeout          *Duration `toml:"tree-timeout"`
-	TagTable             string    `toml:"tag-table"`
-	RollupConf           string    `toml:"rollup-conf"`
-	ExtraPrefix          string    `toml:"extra-prefix"`
+	Url                   string    `toml:"url"`
+	DataTable             string    `toml:"data-table"`
+	DataTimeout           *Duration `toml:"data-timeout"`
+	TreeTable             string    `toml:"tree-table"`
+	DateTreeTable         string    `toml:"date-tree-table"`
+	DateTreeTableVersion  int       `toml:"date-tree-table-version"`
+	TaggedTable           string    `toml:"tagged-table"`
+	ReverseTreeTable      string    `toml:"reverse-tree-table"`
+	TreeTimeout           *Duration `toml:"tree-timeout"`
+	TagTable              string    `toml:"tag-table"`
+	RollupConf            string    `toml:"rollup-conf"`
+	ExtraPrefix           string    `toml:"extra-prefix"`
+	MetricLimitWithExpand int       `toml:"metric-limit-with-expand"`
 }
 
 type Tags struct {
@@ -128,8 +129,9 @@ func New() *Config {
 			TreeTimeout: &Duration{
 				Duration: time.Minute,
 			},
-			RollupConf: "/etc/graphite-clickhouse/rollup.xml",
-			TagTable:   "",
+			RollupConf:            "/etc/graphite-clickhouse/rollup.xml",
+			TagTable:              "",
+			MetricLimitWithExpand: 10000,
 		},
 		Tags: Tags{
 			Date:  "2016-11-01",

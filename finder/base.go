@@ -11,17 +11,19 @@ import (
 )
 
 type BaseFinder struct {
-	url     string        // clickhouse dsn
-	table   string        // graphite_tree table
-	timeout time.Duration // clickhouse query timeout
-	body    []byte        // clickhouse response body
+	url         string        // clickhouse dsn
+	table       string        // graphite_tree table
+	timeout     time.Duration // clickhouse query timeout
+	body        []byte        // clickhouse response body
+	expandLimit int           // limit for ~ symbol
 }
 
-func NewBase(url string, table string, timeout time.Duration) Finder {
+func NewBase(url string, table string, timeout time.Duration, expandLimit int) Finder {
 	return &BaseFinder{
-		url:     url,
-		table:   table,
-		timeout: timeout,
+		url:         url,
+		table:       table,
+		timeout:     timeout,
+		expandLimit: expandLimit,
 	}
 }
 
@@ -30,20 +32,22 @@ func (b *BaseFinder) where(query string) string {
 
 	w := NewWhere()
 
-	w.Andf("Level = %d", level)
+	if !HasExpand(query) {
+		w.Andf("Level = %d", level)
+	}
 
 	if query == "*" {
 		return w.String()
 	}
 
 	// simple metric
-	if !HasWildcard(query) {
+	if !HasWildcard(query) && !HasExpand(query) {
 		w.Andf("Path = %s OR Path = %s", Q(query), Q(query+"."))
 		return w.String()
 	}
 
 	// before any wildcard symbol
-	simplePrefix := query[:strings.IndexAny(query, "[]{}*?")]
+	simplePrefix := query[:strings.IndexAny(query, "[]{}*?~")]
 
 	if len(simplePrefix) > 0 {
 		w.Andf("Path LIKE %s", Q(simplePrefix+`%`))
@@ -62,11 +66,15 @@ func (b *BaseFinder) where(query string) string {
 
 func (b *BaseFinder) Execute(ctx context.Context, query string, from int64, until int64) (err error) {
 	where := b.where(query)
+	limit := ""
+	if HasExpand(query) {
+		limit = fmt.Sprintf(" LIMIT %d", b.expandLimit)
+	}
 
 	b.body, err = clickhouse.Query(
 		ctx,
 		b.url,
-		fmt.Sprintf("SELECT Path FROM %s WHERE %s GROUP BY Path HAVING argMax(Deleted, Version)==0", b.table, where),
+		fmt.Sprintf("SELECT Path FROM %s WHERE %s GROUP BY Path HAVING argMax(Deleted, Version)==0%s", b.table, where, limit),
 		b.timeout,
 	)
 

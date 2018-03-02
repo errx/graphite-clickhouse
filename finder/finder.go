@@ -33,13 +33,30 @@ func Find(config *config.Config, ctx context.Context, query string, from int64, 
 		}
 
 		if from > 0 && until > 0 && config.ClickHouse.DateTreeTable != "" {
-			f = NewDateFinder(config.ClickHouse.Url, config.ClickHouse.DateTreeTable, config.ClickHouse.DateTreeTableVersion, config.ClickHouse.TreeTimeout.Value())
+			f = NewDateFinder(
+				config.ClickHouse.Url,
+				config.ClickHouse.DateTreeTable,
+				config.ClickHouse.DateTreeTableVersion,
+				config.ClickHouse.TreeTimeout.Value(),
+				config.ClickHouse.MetricLimitWithExpand,
+			)
 		} else {
-			f = NewBase(config.ClickHouse.Url, config.ClickHouse.TreeTable, config.ClickHouse.TreeTimeout.Value())
+			f = NewBase(
+				config.ClickHouse.Url,
+				config.ClickHouse.TreeTable,
+				config.ClickHouse.TreeTimeout.Value(),
+				config.ClickHouse.MetricLimitWithExpand,
+			)
 		}
 
 		if config.ClickHouse.ReverseTreeTable != "" {
-			f = WrapReverse(f, config.ClickHouse.Url, config.ClickHouse.ReverseTreeTable, config.ClickHouse.TreeTimeout.Value())
+			f = WrapReverse(
+				f,
+				config.ClickHouse.Url,
+				config.ClickHouse.ReverseTreeTable,
+				config.ClickHouse.TreeTimeout.Value(),
+				config.ClickHouse.MetricLimitWithExpand,
+			)
 		}
 
 		if config.ClickHouse.TagTable != "" {

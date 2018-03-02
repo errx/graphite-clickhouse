@@ -13,11 +13,12 @@ type DateFinder struct {
 	tableVersion int
 }
 
-func NewDateFinder(url string, table string, tableVersion int, timeout time.Duration) Finder {
+func NewDateFinder(url string, table string, tableVersion int, timeout time.Duration, expandLimit int) Finder {
 	b := &BaseFinder{
-		url:     url,
-		table:   table,
-		timeout: timeout,
+		url:         url,
+		table:       table,
+		timeout:     timeout,
+		expandLimit: expandLimit,
 	}
 
 	return &DateFinder{b, tableVersion}
