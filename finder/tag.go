@@ -84,10 +84,12 @@ func (t *TagFinder) tagListSQL() (string, error) {
 
 	w := NewWhere()
 
-	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE Prefix='' AND Level=0 AND Path='')", t.table)
+	wPrefix := t.tagQuery[0].Where("Prefix")
+
+	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE %s AND Level=0 AND Path='')", t.table, wPrefix)
 
 	// first
-	w.And(t.tagQuery[0].Where("Prefix"))
+	w.And(wPrefix)
 
 	if len(t.tagQuery) == 1 {
 		w.And("Level=1")
@@ -121,9 +123,12 @@ func (t *TagFinder) seriesSQL() (string, error) {
 
 	w := NewWhere()
 
-	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE Prefix='' AND Level=0 AND Path='')", t.table)
+	wPrefix := t.tagQuery[0].Where("Prefix")
+
+	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE %s AND Level=0 AND Path='')", t.table, wPrefix)
+
 	// first
-	w.And(t.tagQuery[0].Where("Prefix"))
+	w.And(wPrefix)
 
 	// 1..(n-1)
 	for i := 1; i < len(t.tagQuery); i++ {
