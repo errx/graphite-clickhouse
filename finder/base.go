@@ -29,20 +29,24 @@ func (b *BaseFinder) where(query string) *Where {
 
 	w := NewWhere()
 
-	w.Andf("Level = %d", level)
+	hasExpand := HasExpand(query)
+
+	if !hasExpand {
+		w.Andf("Level = %d", level)
+	}
 
 	if query == "*" {
 		return w
 	}
 
 	// simple metric
-	if !HasWildcard(query) {
+	if !HasWildcard(query) && !hasExpand {
 		w.Andf("Path = %s OR Path = %s", Q(query), Q(query+"."))
 		return w
 	}
 
 	// before any wildcard symbol
-	simplePrefix := query[:strings.IndexAny(query, "[]{}*?")]
+	simplePrefix := query[:strings.IndexAny(query, "[]{}*?~")]
 
 	if len(simplePrefix) > 0 {
 		w.Andf("Path LIKE %s", Q(simplePrefix+`%`))
