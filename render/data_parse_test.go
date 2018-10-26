@@ -13,7 +13,6 @@ type testPoint struct {
 	Metric    string
 	Value     float64
 	Time      uint32
-	Timestamp uint32
 }
 
 func makeData(points []testPoint) []byte {
@@ -44,20 +43,20 @@ func TestDataParse(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		table := [][]testPoint{
 			{
-				{"hello.world", 42.1, 1520056686, 1520056706},
+				{"hello.world", 42.1, 1520056686},
 			},
 			{
-				{"hello.world", 42.1, 1520056686, 1520056706},
-				{"foobar", 42.2, 1520056687, 1520056707},
+				{"hello.world", 42.1, 1520056686},
+				{"foobar", 42.2, 1520056687},
 			},
 			{
-				{"samelen1", 42.1, 1520056686, 1520056706},
-				{"samelen2", 42.2, 1520056687, 1520056707},
+				{"samelen1", 42.1, 1520056686},
+				{"samelen2", 42.2, 1520056687},
 			},
 			{
-				{"key1", 42.1, 1520056686, 1520056706},
-				{"key2", 42.2, 1520056687, 1520056707},
-				{"key1", 42.2, 1520056687, 1520056707},
+				{"key1", 42.1, 1520056686},
+				{"key2", 42.2, 1520056687},
+				{"key1", 42.2, 1520056687},
 			},
 		}
 
@@ -85,7 +84,6 @@ func TestDataParse(t *testing.T) {
 				Metric:    "hello.world",
 				Value:     42.1,
 				Time:      1520056686,
-				Timestamp: 1520056706,
 			},
 		})
 
