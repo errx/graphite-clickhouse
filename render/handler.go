@@ -195,7 +195,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf(
 		`
 		SELECT
-			Path, Time, Value, Timestamp
+			Path, Time, Value
 		FROM %s
 		PREWHERE (%s)
 		WHERE (%s)

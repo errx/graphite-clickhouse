@@ -122,7 +122,7 @@ func (h *Handler) queryData(ctx context.Context, q *prompb.Query, metricList [][
 	query := fmt.Sprintf(
 		`
 		SELECT
-			Path, Time, Value, Timestamp
+			Path, Time, Value
 		FROM %s
 		PREWHERE (%s)
 		WHERE (%s)

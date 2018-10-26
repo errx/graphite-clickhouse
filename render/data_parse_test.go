@@ -24,7 +24,8 @@ func makeData(points []testPoint) []byte {
 		w.String(points[i].Metric)
 		w.Uint32(uint32(points[i].Time))
 		w.Float64(points[i].Value)
-		w.Uint32(uint32(points[i].Timestamp))
+		// w.Uint32(uint32(points[i].Timestamp))
+		w.Uint32(uint32(0))
 	}
 
 	return buf.Bytes()
@@ -72,7 +73,8 @@ func TestDataParse(t *testing.T) {
 					assert.Equal(t, table[i][j].Metric, d.Points.MetricName(d.Points.List()[j].MetricID))
 					assert.Equal(t, table[i][j].Time, d.Points.List()[j].Time)
 					assert.Equal(t, table[i][j].Value, d.Points.List()[j].Value)
-					assert.Equal(t, table[i][j].Timestamp, d.Points.List()[j].Timestamp)
+					// assert.Equal(t, table[i][j].Timestamp, d.Points.List()[j].Timestamp)
+					assert.Equal(t, uint32(0), d.Points.List()[j].Timestamp)
 				}
 			})
 		}
