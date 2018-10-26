@@ -74,12 +74,11 @@ func (h *Handler) queryCarbonlink(parentCtx context.Context, logger *zap.Logger,
 		result := point.NewPoints()
 
 		if res != nil && len(res) > 0 {
-			tm := uint32(time.Now().Unix())
 
 			for metric, points := range res {
 				metricID := result.MetricID(metric)
 				for _, p := range points {
-					result.AppendPoint(metricID, p.Value, uint32(p.Timestamp), tm)
+					result.AppendPoint(metricID, p.Value, uint32(p.Timestamp))
 				}
 			}
 		}

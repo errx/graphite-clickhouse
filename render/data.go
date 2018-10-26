@@ -121,7 +121,6 @@ func DataParse(bodyReader io.Reader, extraPoints *point.Points, isReverse bool) 
 				pp.MetricID(extraPoints.MetricName(extraList[i].MetricID)),
 				extraList[i].Value,
 				extraList[i].Time,
-				0,
 				// extraList[i].Timestamp,
 			)
 		}
@@ -169,7 +168,7 @@ func DataParse(bodyReader io.Reader, extraPoints *point.Points, isReverse bool) 
 		// row = row[8:]
 		// timestamp := binary.LittleEndian.Uint32(row[:4])
 		// pp.AppendPoint(metricID, value, time, timestamp)
-		pp.AppendPoint(metricID, value, time, 0)
+		pp.AppendPoint(metricID, value, time)
 
 	}
 

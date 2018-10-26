@@ -74,7 +74,6 @@ func TestDataParse(t *testing.T) {
 					assert.Equal(t, table[i][j].Time, d.Points.List()[j].Time)
 					assert.Equal(t, table[i][j].Value, d.Points.List()[j].Value)
 					// assert.Equal(t, table[i][j].Timestamp, d.Points.List()[j].Timestamp)
-					assert.Equal(t, uint32(0), d.Points.List()[j].Timestamp)
 				}
 			})
 		}

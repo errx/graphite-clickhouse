@@ -39,9 +39,9 @@ func Uniq(points []Point) []Point {
 			continue
 		}
 
-		if points[i].Timestamp > points[n].Timestamp {
-			points[n] = points[i]
-		}
+		// if points[i].Timestamp > points[n].Timestamp {
+		// 	points[n] = points[i]
+		// }
 
 		points[i].MetricID = 0 // mark for remove
 	}
@@ -57,7 +57,6 @@ func AssertListEq(t *testing.T, expected, actual []Point) {
 	for i := 0; i < len(actual); i++ {
 		if (actual[i].MetricID != expected[i].MetricID) ||
 			(actual[i].Time != expected[i].Time) ||
-			(actual[i].Timestamp != expected[i].Timestamp) ||
 			(actual[i].Value != expected[i].Value) {
 			t.FailNow()
 		}

@@ -16,12 +16,11 @@ func NewPoints() *Points {
 	}
 }
 
-func (pp *Points) AppendPoint(metricID uint32, value float64, time uint32, version uint32) {
+func (pp *Points) AppendPoint(metricID uint32, value float64, time uint32) {
 	pp.list = append(pp.list, Point{
 		MetricID:  metricID,
 		Value:     value,
 		Time:      time,
-		Timestamp: version,
 	})
 }
 
