@@ -84,18 +84,24 @@ func (t *TagFinder) tagListSQL() (string, error) {
 
 	w := NewWhere()
 
-	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE Tag1='' AND Level=0 AND Path='')", t.table)
+	wPrefix := t.tagQuery[0].Where("Prefix")
+
+	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE %s AND Level=0 AND Path='')", t.table, wPrefix)
 
 	// first
-	w.And(t.tagQuery[0].Where("Tag1"))
+	w.And(wPrefix)
 
 	if len(t.tagQuery) == 1 {
 		w.And("Level=1")
+		return fmt.Sprintf("SELECT Prefix FROM %s WHERE %s GROUP BY Prefix", t.table, w), nil
+	} else if len(t.tagQuery) == 2 {
+		w.And("Level=1") //?
+		w.And(t.tagQuery[1].Where("Tag1"))
 		return fmt.Sprintf("SELECT Tag1 FROM %s WHERE %s GROUP BY Tag1", t.table, w), nil
 	}
 
 	// 1..(n-1)
-	for i := 1; i < len(t.tagQuery)-1; i++ {
+	for i := 2; i < len(t.tagQuery)-1; i++ {
 		cond := t.tagQuery[i].Where("x")
 		if cond != "" {
 			w.Andf("arrayExists((x) -> %s, Tags)", cond)
@@ -117,15 +123,22 @@ func (t *TagFinder) seriesSQL() (string, error) {
 
 	w := NewWhere()
 
-	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE Tag1='' AND Level=0 AND Path='')", t.table)
+	wPrefix := t.tagQuery[0].Where("Prefix")
+
+	w.Andf("Version>=(SELECT Max(Version) FROM %s WHERE %s AND Level=0 AND Path='')", t.table, wPrefix)
+
 	// first
-	w.And(t.tagQuery[0].Where("Tag1"))
+	w.And(wPrefix)
 
 	// 1..(n-1)
 	for i := 1; i < len(t.tagQuery); i++ {
-		cond := t.tagQuery[i].Where("x")
-		if cond != "" {
-			w.Andf("arrayExists((x) -> %s, Tags)", cond)
+		if i == 1 {
+			w.And(t.tagQuery[1].Where("Tag1"))
+		} else {
+			cond := t.tagQuery[i].Where("x")
+			if cond != "" {
+				w.Andf("arrayExists((x) -> %s, Tags)", cond)
+			}
 		}
 	}
 

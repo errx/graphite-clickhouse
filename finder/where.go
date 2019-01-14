@@ -16,6 +16,7 @@ func GlobToRegexp(g string) string {
 	s = strings.Replace(s, "?", "[^.]", -1)
 	s = strings.Replace(s, ",", "|", -1)
 	s = strings.Replace(s, "*", "([^.]*?)", -1)
+	s = strings.Replace(s, "~", "(.*?)", -1)
 	return s
 }
 
@@ -31,6 +32,10 @@ func NonRegexpPrefix(expr string) string {
 		}
 	}
 	return expr
+}
+
+func HasExpand(target string) bool {
+	return strings.IndexRune(target, '~') > -1
 }
 
 // Q quotes string for clickhouse
